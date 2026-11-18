@@ -12,7 +12,7 @@ export default function Shipping() {
         <h3>Shipping</h3>
         <p>We deliver across India.</p>
         <ul>
-          <li>Shipping is <b>free</b> on orders of ₹{SITE.freeShippingAbove.toLocaleString("en-IN")} and above. Below that, shipping costs ₹{SITE.shippingFee}.</li>
+          <li>Standard shipping is <b>free</b> on every order. Express delivery (where available) costs ₹199. You can check the delivery date for your pincode on the product page.</li>
           <li>Orders are dispatched within {SITE.dispatchDays}.</li>
           <li>Delivery usually takes {SITE.deliveryDays} after dispatch, depending on your location.</li>
           <li>Once your order is shipped, the courier name and tracking ID appear on your order page under My Account.</li>

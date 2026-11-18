@@ -1,7 +1,7 @@
 import Link from "next/link";
 import BagArt from "./BagArt";
+import { inr } from "@/lib/money";
 
-const inr = (n) => "₹" + Number(n || 0).toLocaleString("en-IN");
 
 // Chhota product card (Similar / Recently viewed carousel ke liye)
 export default function MiniCard({ p, by }) {

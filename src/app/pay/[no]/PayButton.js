@@ -51,6 +51,7 @@ export default function PayButton({ orderNo, name, mobile, email }) {
         },
       });
       rzp.on("payment.failed", (e) => {
+        try { navigator.sendBeacon("/api/track", new Blob([JSON.stringify({ events: [{ type: "payment_failed", order: orderNo }] })], { type: "application/json" })); } catch {}
         setMsg("Payment fail hua: " + (e?.error?.description || "dobara try karein"));
         setBusy(false);
       });

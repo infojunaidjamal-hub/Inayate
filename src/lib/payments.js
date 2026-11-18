@@ -1,5 +1,6 @@
 // Razorpay ka paisa mila: order ko Paid karo (webhook aur "payment check" dono yahi use karte hain)
 import { run } from "@/lib/db";
+import { routeNewOrder } from "@/lib/orderFlow";
 
 export function applyPayment(order, paymentId, paidPaise) {
   if (!order) return { error: "Order nahi mila." };
@@ -11,6 +12,7 @@ export function applyPayment(order, paymentId, paidPaise) {
       "UPDATE orders SET pay_status = 'Paid', status = 'Placed', razorpay_payment_id = ? WHERE id = ? AND status = 'Awaiting Payment'",
       paymentId, order.id
     );
+    routeNewOrder(order.id); // rules dekho: On Hold ya Confirmed
     return { ok: true, paid: true };
   }
   // paisa kat gaya par order pehle hi cancel ya expire ho chuka tha: seller ko refund dena hoga

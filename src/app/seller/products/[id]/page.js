@@ -1,27 +1,31 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireSeller } from "@/lib/auth";
-import { all, one } from "@/lib/db";
+import { requirePerm } from "@/lib/auth";
+import { one } from "@/lib/db";
 import { imagesOf } from "@/lib/images";
-import SellerNav from "@/components/SellerNav";
+import { categoryTree, variantsOf } from "@/lib/catalog";
 import ProductForm from "../ProductForm";
+import { duplicateProduct } from "../actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function EditProduct({ params, searchParams }) {
-  await requireSeller();
+  await requirePerm("products");
   const { id } = await params;
   const { imgerr } = await searchParams;
   const product = one("SELECT * FROM products WHERE id = ?", Number(id));
   if (!product) notFound();
-  const categories = all("SELECT DISTINCT category FROM products ORDER BY category").map((r) => r.category);
   return (
     <>
-      <SellerNav />
       <h2>Edit: {product.name}</h2>
-      {imgerr && <p className="err">Product save ho gaya, par: {imgerr}</p>}
-      <ProductForm product={product} categories={categories} images={imagesOf(product.id)} />
-      <p><Link href="/seller/products">← Wapas</Link> · <Link href={`/products/${product.id}`}>Store par dekhein ↗</Link></p>
+      {imgerr && <p className="err">Product saved, but: {imgerr}</p>}
+      <ProductForm product={product} tree={categoryTree()} images={imagesOf(product.id)} variants={variantsOf(product.id)} />
+      <form action={duplicateProduct} style={{ margin: "12px 0" }}>
+        <input type="hidden" name="id" value={product.id} />
+        <button className="btn o">Duplicate product</button>
+        <span className="mut" style={{ marginLeft: 10, fontSize: 12 }}>Makes a Draft copy with the same options, prices and photos (stock 0).</span>
+      </form>
+      <p><Link href="/seller/products">← Back</Link> · <Link href={`/products/${product.id}`}>View in store ↗</Link></p>
     </>
   );
 }

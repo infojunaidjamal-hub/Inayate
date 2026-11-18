@@ -2,10 +2,17 @@ import Link from "next/link";
 import BagArt from "@/components/BagArt";
 import ProductCard from "@/components/ProductCard";
 import HeroSlider from "@/components/HeroSlider";
+import WelcomePopup from "@/components/WelcomePopup";
 import { all, inr } from "@/lib/db";
 import { SITE } from "@/lib/site";
 import { homePic, slug } from "@/lib/homePics";
+import { listPosts, fmtPostDate } from "@/lib/blog";
+import { Cover } from "@/components/BlogShared";
+import BlogCarousel from "@/components/BlogCarousel";
 import { withCovers } from "@/lib/images";
+import { VISIBLE_SQL, categoryTree } from "@/lib/catalog";
+import { waLink } from "@/lib/whatsapp";
+import StyleStory from "@/components/StyleStory";
 
 export const dynamic = "force-dynamic";
 
@@ -37,11 +44,15 @@ const CSS = `
 .hm-dots button.on{background:var(--ink);width:24px;border-radius:6px}
 
 /* trust strip */
-.hm-trust{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px}
-.hm-trust div{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.hm-trust{margin-top:22px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent);mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent)}
+.hm-trust-track{display:flex;width:max-content;animation:hmTrust 32s linear infinite}
+.hm-trust:hover .hm-trust-track{animation-play-state:paused}
+.hm-trust-item{flex:none;width:280px;margin-right:12px;display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
 .hm-trust i{flex:none;width:44px;height:44px;border-radius:50%;background:var(--rose);display:grid;place-items:center;font-size:20px;font-style:normal}
 .hm-trust b{display:block;font-size:13.5px;font-weight:500}
 .hm-trust small{color:var(--mut);font-size:12px}
+@keyframes hmTrust{to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.hm-trust{overflow-x:auto;-webkit-mask-image:none;mask-image:none}.hm-trust-track{animation:none}.hm-trust-item[aria-hidden="true"]{display:none}}
 
 /* categories */
 .hm-cats{background:linear-gradient(180deg,#fbeee9,#f6e3da);border-radius:24px;padding:34px 20px 30px}
@@ -94,6 +105,50 @@ const CSS = `
 .hm-insta svg{width:52%}
 .hm-insta a:hover{opacity:.9}
 .hm-follow{text-align:center;margin-top:18px}
+/* blog carousel */
+.hm-bl-wrap{position:relative}
+.hm-bl-track{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:4px 2px 12px;scrollbar-width:none;outline-offset:4px}
+.hm-bl-track::-webkit-scrollbar{display:none}
+.hm-bl-card{flex:0 0 calc((100% - 32px) / 3);scroll-snap-align:start;display:flex;flex-direction:column;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:12px 12px 16px;text-decoration:none;color:inherit;transition:transform .25s,border-color .25s,box-shadow .25s}
+.hm-bl-card:hover{border-color:var(--acc);transform:translateY(-3px);box-shadow:0 14px 30px #2a262318}
+.hm-bl-card .bl-cover{aspect-ratio:16/10;border-radius:14px;display:grid;place-items:center;overflow:hidden;position:relative}
+.hm-bl-card .bl-cover svg{width:38%;max-width:140px;transform:rotate(-6deg);filter:drop-shadow(0 14px 16px #2a262326)}
+.hm-bl-card .bl-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hm-bl-meta{font-size:12px;color:var(--mut);padding:0 4px}
+.hm-bl-card h3{margin:0;font:500 18px/1.3 'Playfair Display',serif;color:var(--ink);padding:0 4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hm-bl-card p{margin:0;font-size:13px;line-height:1.5;color:var(--mut);padding:0 4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hm-bl-btn{align-self:flex-start;margin:auto 0 0 4px;display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--acc);color:var(--acc);border-radius:30px;padding:8px 18px;font-size:13px;font-weight:500;transition:background .2s,color .2s}
+.hm-bl-card:hover .hm-bl-btn{background:var(--acc);color:#fff}
+.hm-bl-arr{position:absolute;top:34%;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--ink);box-shadow:0 6px 16px #2a262322;cursor:pointer;display:grid;place-items:center;z-index:2;padding:0}
+.hm-bl-arr.l{left:-14px}.hm-bl-arr.r{right:-14px}
+.hm-bl-arr:hover:not(:disabled){border-color:var(--acc);color:var(--acc)}
+.hm-bl-arr:disabled{opacity:.35;cursor:default}
+@media(max-width:900px){.hm-bl-card{flex-basis:calc((100% - 16px) / 2)}}
+@media(max-width:560px){.hm-bl-card{flex-basis:84%}.hm-bl-arr{display:none}}
+/* also available on (marketplaces) */
+.hm-mk{position:relative;background:linear-gradient(150deg,#c89b6d,#b58859 55%,#a77b50);border-radius:26px;padding:46px 28px 40px;color:#fff8ec;overflow:hidden;text-align:center;box-shadow:0 18px 40px #7a54302e}
+.hm-mk:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 80% at 12% 0%,#ffffff2b,transparent 60%)}
+.hm-mk>*{position:relative}
+.hm-mk-eb{display:flex;align-items:center;justify-content:center;gap:14px;color:#fff3dc;letter-spacing:3px;font-size:11.5px;font-weight:500;text-transform:uppercase;white-space:nowrap}
+.hm-mk-eb:before,.hm-mk-eb:after{content:"";flex:0 1 54px;height:1px;background:#fff3dcaa}
+.hm-mk h2{font-size:clamp(24px,4.2vw,38px);margin:18px 0 14px;color:#fffaf1}
+.hm-mk h2 em{color:#ffe3ad;font-style:italic}
+.hm-mk-sub{color:#fdf0dd;font-size:14px;margin:0 auto 28px;max-width:540px}
+.hm-mk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;max-width:940px;margin:0 auto}
+.hm-mk-card{display:flex;flex-direction:column;align-items:center;gap:14px;padding:26px 14px 18px;border:1px solid #ffffff55;border-radius:18px;background:#ffffff21;text-decoration:none;color:#fff8ec;transition:transform .25s,border-color .25s,background .25s}
+.hm-mk-card:hover{transform:translateY(-4px);border-color:#ffffffb0;background:#ffffff36}
+.hm-mk-logo{height:58px;width:100%;max-width:150px;background:#fff;border-radius:14px;display:grid;place-items:center;box-shadow:0 10px 22px #5a39222e;font:800 21px/1 Poppins,Arial,sans-serif;letter-spacing:-.4px;white-space:nowrap}
+.hm-mk-logo img{max-width:82%;max-height:62%;object-fit:contain}
+.hm-mk-go{letter-spacing:2.5px;font-size:11px;color:#fff3dc;text-transform:uppercase}
+.hm-mk-card:hover .hm-mk-go{color:#fff}
+.hm-mk-help{margin-top:34px}
+.hm-mk-wa{display:inline-flex;align-items:center;gap:10px;margin-top:16px;background:#fff;color:#2a2623;border-radius:40px;padding:6px 26px 6px 6px;font-weight:700;font-size:14px;text-decoration:none;box-shadow:0 12px 28px #5a392240;transition:transform .2s}
+.hm-mk-wa:hover{transform:translateY(-2px)}
+.hm-mk-wa i{width:40px;height:40px;border-radius:50%;background:#25d366;display:grid;place-items:center}
+.hm-mk-note{margin-top:12px;font-size:12px;color:#fdf0dd}
+.hm-mk a:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@media(max-width:700px){.hm-mk-wa{display:flex;justify-content:center;max-width:290px;margin-left:auto;margin-right:auto}}
+@media(prefers-reduced-motion:reduce){.hm-mk-card,.hm-mk-wa{transition:none}}
 
 @media(max-width:900px){
   .hm-trust{grid-template-columns:1fr 1fr}
@@ -102,6 +157,8 @@ const CSS = `
   .hm-insta{grid-template-columns:repeat(3,1fr)}
   .hm-banner,.hm-bts{grid-template-columns:1fr;padding:28px 22px}
   .hm-banner svg{display:none}
+  .hm-mk{padding:34px 16px 30px}
+  .hm-mk-grid{grid-template-columns:1fr 1fr;gap:12px}
 }
 @media(max-width:700px){
   .hm-hero{min-height:500px}
@@ -112,19 +169,52 @@ const CSS = `
   .hm-two{grid-template-columns:1fr 1fr;gap:10px}
 }
 @media(max-width:480px){.hm-trust{grid-template-columns:1fr}}
+
+@media(max-width:900px){
+  .hm-grid4{grid-template-columns:1fr 1fr}
+  .hm-reels{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:46%;overflow-x:auto;padding-bottom:6px}
+  .hm-insta{grid-template-columns:repeat(3,1fr)}
+  .hm-banner,.hm-bts{grid-template-columns:1fr;padding:28px 22px}
+  .hm-banner svg{display:none}
+  .hm-mk{padding:34px 16px 30px}
+  .hm-mk-grid{grid-template-columns:1fr 1fr;gap:12px}
+}
+@media(max-width:700px){
+  .hm-hero{min-height:500px}
+  .hm-slide{grid-template-columns:1fr;grid-template-rows:auto 150px;align-content:center;padding:28px 22px 44px;gap:10px}
+  .hm-slide-v svg{width:130px}
+  .hm-slide-v img{max-height:150px}
+  .hm-arr{display:none}
+  .hm-two{grid-template-columns:1fr 1fr;gap:10px}
+}
 `;
 
 const HERO = [
   { tag: "NEW ARRIVALS", title: "Carry your story in style", text: "Handbags for every day, every occasion. Fresh designs, made to be loved.", cta: "Shop Now", href: "/products", bg: "linear-gradient(120deg,#e9c9c0,#f3e3d3)", c1: "#b8865b", c2: "#8a5d3a", img: homePic("hero-1") },
   { tag: "BEST SELLERS", title: "The bags everyone is ordering", text: "Our most-loved styles, picked by customers like you.", cta: "See Best Sellers", href: "/products", bg: "linear-gradient(120deg,#f1e2cd,#ead2bd)", c1: "#c97b84", c2: "#9a4f58", img: homePic("hero-2") },
-  { tag: "FREE SHIPPING", title: `Free shipping above ${inr(SITE.freeShippingAbove)}`, text: `Cash on Delivery available. Easy ${SITE.returnDays}-day returns on every order.`, cta: "Start Shopping", href: "/products", bg: "linear-gradient(120deg,#dde8dc,#f1e8dd)", c1: "#6f8f72", c2: "#4d6a50", img: homePic("hero-3") },
+  { tag: "FREE SHIPPING", title: SITE.freeShippingAbove > 0 ? `Free shipping above ${inr(SITE.freeShippingAbove)}` : "Free shipping on every order", text: `Cash on Delivery available. Easy ${SITE.returnDays}-day returns on every order.`, cta: "Start Shopping", href: "/products", bg: "linear-gradient(120deg,#dde8dc,#f1e8dd)", c1: "#6f8f72", c2: "#4d6a50", img: homePic("hero-3") },
+];
+
+// "Also available on": jin marketplaces ka link site.js mein diya hai wahi dikhte hain.
+// Logo ki photo chahiye to public/home/mk-amazon.png (flipkart, meesho, myntra) rakhein, nahi to naam ka logo dikhta hai.
+const MARKETS = [
+  { key: "amazon", name: "Amazon", logo: <span style={{ color: "#232f3e" }}>amazon<i style={{ color: "#ff9900", fontStyle: "normal" }}>.in</i></span> },
+  { key: "flipkart", name: "Flipkart", logo: <span style={{ color: "#2874f0", fontStyle: "italic" }}>Flipkart<i style={{ color: "#f5c400", fontStyle: "normal", marginLeft: 2 }}>✦</i></span> },
+  { key: "meesho", name: "Meesho", logo: <span style={{ color: "#9f2089" }}>meesho</span> },
+  { key: "myntra", name: "Myntra", logo: <span style={{ color: "#ff3f6c" }}>Myntra</span> },
 ];
 
 const INSTA_COLORS = [["#b8865b", "#8a5d3a"], ["#c97b84", "#9a4f58"], ["#6f8f72", "#4d6a50"], ["#7d94b5", "#566b8c"], ["#d9a441", "#a87a22"], ["#8a6a9e", "#634a76"]];
 const INSTA_BG = ["#f3e3d3", "#f6dfe2", "#e3ede3", "#e1e9f3", "#f7ecd3", "#ece3f1"];
 
 export default function Home() {
-  const products = withCovers(all("SELECT * FROM products WHERE status = 'Active' ORDER BY id"));
+  const trust = [
+    { i: "🚚", t: "Fast Delivery", s: `Dispatch in ${SITE.dispatchDays}` },
+    { i: "🔒", t: "Safe Payment", s: "UPI, Cards and COD" },
+    { i: "💬", t: "Customer Support", s: "WhatsApp and email help" },
+    { i: "↩️", t: "Easy Returns", s: `${SITE.returnDays}-day return window` },
+  ];
+  const products = withCovers(all(`SELECT * FROM products WHERE status = 'Active' AND ${VISIBLE_SQL} ORDER BY id`));
   const discount = (p) => (p.mrp > p.price ? (p.mrp - p.price) / p.mrp : 0);
 
   // category ke gol icon: category ki photo > us category ke pehle product ki photo > drawing
@@ -135,7 +225,9 @@ export default function Home() {
     c.n += 1;
     if (!c.image && p.image) c.image = p.image;
   }
-  const cats = [...catMap.values()].slice(0, 6);
+  // seller ke Categories page ka order aur photo (hidden category nahi aati)
+  const tree = categoryTree({ onlyVisible: true });
+  const cats = tree.map((t) => { const m = catMap.get(t.name); return m ? { ...m, image: t.photo || m.image } : null; }).filter(Boolean).slice(0, 6);
 
   // best sellers: asli orders se (cancel hue orders ginti mein nahi)
   const soldRows = all(
@@ -148,23 +240,34 @@ export default function Home() {
   const deals = [...products].sort((a, b) => discount(b) - discount(a) || a.id - b.id).slice(0, 5);
   const fresh = [...products].sort((a, b) => b.id - a.id).slice(0, 2);
 
+  // popup photo: public/home/popup.jpg if you add one, else the first product photo
+  const popupImg = homePic("popup") || products.find((p) => p.image)?.image || null;
+
   const bts = homePic("bts");
+  const posts = listPosts(); // sabhi published posts, naye pehle
+  const markets = MARKETS.map((m) => ({ ...m, url: SITE.marketplaces?.[m.key], img: homePic(`mk-${m.key}`) })).filter((m) => m.url);
   const ig = SITE.instagram;
   const igHref = ig ? `https://instagram.com/${ig}` : "/products";
 
   return (
     <div className="hm">
       <style>{CSS}</style>
+      <WelcomePopup config={SITE.popup} image={popupImg} />
 
       {/* 2. Hero slider */}
       <HeroSlider slides={HERO} />
 
       {/* 3. Trust strip */}
-      <div className="hm-trust">
-        <div><i>🚚</i><span><b>Fast Delivery</b><small>Dispatch in {SITE.dispatchDays}</small></span></div>
-        <div><i>🔒</i><span><b>Safe Payment</b><small>UPI, Cards and COD</small></span></div>
-        <div><i>💬</i><span><b>Customer Support</b><small>WhatsApp and email help</small></span></div>
-        <div><i>↩️</i><span><b>Easy Returns</b><small>{SITE.returnDays}-day return window</small></span></div>
+      <div className="hm-trust" aria-label="Our promises">
+        <div className="hm-trust-track">
+          {[0, 1].map((copy) =>
+            trust.map((x) => (
+              <div className="hm-trust-item" key={`${copy}-${x.t}`} aria-hidden={copy ? "true" : undefined}>
+                <i>{x.i}</i><span><b>{x.t}</b><small>{x.s}</small></span>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* 4. Shop by category */}
@@ -256,6 +359,55 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* 8a. Blog */}
+      {posts.length > 0 && (
+        <section>
+          <div className="hm-title"><small>STYLE · GUIDES · CARE</small><h2>Latest from our Blog</h2></div>
+          <BlogCarousel>
+            {posts.map((p) => (
+              <Link key={p.slug} href={`/blog/${p.slug}`} className="hm-bl-card">
+                <Cover post={p} />
+                <span className="hm-bl-meta">by {p.author || SITE.name} on {fmtPostDate(p.published_at)}</span>
+                <h3>{p.title}</h3>
+                <p>{p.excerpt}</p>
+                <span className="hm-bl-btn">Read More <span aria-hidden="true">→</span></span>
+              </Link>
+            ))}
+          </BlogCarousel>
+          <div className="hm-follow"><Link href="/blog" className="btn o">View all posts</Link></div>
+        </section>
+      )}
+
+      {/* Watch The Style Story (seller ki videos). Koi video live na ho to kuch nahi dikhta */}
+      <StyleStory />
+
+      {/* 8b. Also available on (marketplaces) */}
+      {markets.length > 0 && (
+        <section>
+          <div className="hm-mk">
+            <div className="hm-mk-eb">Also available on</div>
+            <h2>Shop <em>{SITE.name}</em> on Your Favourite Marketplace</h2>
+            <p className="hm-mk-sub">Prefer ordering from a platform you already use? Find our bags there too, delivered across India.</p>
+            <div className="hm-mk-grid">
+              {markets.map((m) => (
+                <a key={m.key} href={m.url} target="_blank" rel="noopener noreferrer" className="hm-mk-card" aria-label={`${SITE.name} on ${m.name}`}>
+                  <span className="hm-mk-logo">{m.img ? <img src={m.img} alt={m.name} /> : m.logo}</span>
+                  <span className="hm-mk-go">Shop now →</span>
+                </a>
+              ))}
+            </div>
+            <div className="hm-mk-help">
+              <div className="hm-mk-eb">Personal assistance</div>
+              <a className="hm-mk-wa" href={waLink("Hi! I need help choosing a bag.")} target="_blank" rel="noopener noreferrer">
+                <i><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.1-1.3A10 10 0 1 0 12 2zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7a11 11 0 0 1-4.6-4.1c-.4-.5-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2 0 .4-.1.6l-.4.5c-.2.2-.3.3-.1.6.7 1.1 1.5 1.9 2.7 2.5.3.2.5.1.7-.1l.8-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.4 0 .2 0 .8-.3 1.4z" /></svg></i>
+                Chat with Us on WhatsApp
+              </a>
+              <div className="hm-mk-note">{SITE.hours} · {SITE.phone}</div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 9. Instagram */}
       <section>

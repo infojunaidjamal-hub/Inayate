@@ -16,7 +16,9 @@ export default function OrderUpdateForm({ orderNo, allowed, courier, awb }) {
         <div><label htmlFor="oc">Courier ka naam</label><input id="oc" name="courier" defaultValue={courier || ""} placeholder="jaise Delhivery, India Post" /></div>
         <div><label htmlFor="oa">Tracking ID (AWB)</label><input id="oa" name="awb" defaultValue={awb || ""} /></div>
       </div>
-      <p className="mut" style={{ fontSize: 12 }}>"Shipped" karne ke liye courier aur tracking ID zaroori hain. "Cancelled" karne par stock wapas jud jata hai.</p>
+      <label htmlFor="on">Wajah / note (Cancelled aur NDR ke liye zaroori)</label>
+      <input id="on" name="note" maxLength={200} placeholder="jaise: buyer ne phone nahi uthaya" />
+      <p className="mut" style={{ fontSize: 12 }}>"Ready to ship" ke liye courier aur tracking ID zaroori hain. "Cancelled" karne par stock wapas jud jata hai.</p>
       {s?.error && <p className="err">{s.error}</p>}
       <button className="btn a" disabled={busy}>{busy ? "Ruko..." : "Update karein"}</button>
     </form>

@@ -1,20 +1,17 @@
 import Link from "next/link";
-import { requireSeller } from "@/lib/auth";
-import { all } from "@/lib/db";
-import SellerNav from "@/components/SellerNav";
+import { requirePerm } from "@/lib/auth";
+import { categoryTree } from "@/lib/catalog";
 import ProductForm from "../ProductForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewProduct() {
-  await requireSeller();
-  const categories = all("SELECT DISTINCT category FROM products ORDER BY category").map((r) => r.category);
+  await requirePerm("products");
   return (
     <>
-      <SellerNav />
-      <h2>Naya product</h2>
-      <ProductForm categories={categories} />
-      <p><Link href="/seller/products">← Wapas</Link></p>
+      <h2>New product</h2>
+      <ProductForm tree={categoryTree()} />
+      <p><Link href="/seller/products">← Back</Link></p>
     </>
   );
 }

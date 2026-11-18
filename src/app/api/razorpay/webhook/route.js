@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { one } from "@/lib/db";
 import { applyPayment } from "@/lib/payments";
+import { logEvent } from "@/lib/track";
 
 // Razorpay yahan khud batata hai ki payment ho gaya (customer ka tab band ho tab bhi)
 export async function POST(req) {
@@ -23,6 +24,11 @@ export async function POST(req) {
       const r = applyPayment(o, pay.id, pay.amount);
       if (r.error) console.error("webhook:", pay.order_id, r.error);
     }
+  }
+  if (ev.event === "payment.failed") {
+    const pay = ev.payload?.payment?.entity;
+    const o = pay?.order_id ? one("SELECT id, total FROM orders WHERE razorpay_order_id = ?", pay.order_id) : null;
+    if (o) logEvent("payment_failed", { order_id: o.id, value: Math.round(o.total) });
   }
   return Response.json({ ok: true });
 }

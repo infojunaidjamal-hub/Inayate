@@ -33,12 +33,12 @@ export default function BackToTop() {
       aria-label="Back to top"
       style={{
         position: "fixed",
-        bottom: "90px", // WhatsApp button ke upar place karne ke liye
-        right: "20px",
+        bottom: "135px", // WhatsApp button ke upar place karne ke liye
+        right: "40px",
         width: "44px",
         height: "44px",
         borderRadius: "50%",
-        backgroundColor: "var(--ink, #241f1c)",
+        backgroundColor: "var(--ink, #241f1cd9)",
         color: "#f6e3a8", // Brand accent tone
         border: "1px solid rgba(255, 255, 255, 0.15)",
         boxShadow: "0 4px 12px rgba(0,0,0,0.15)",

@@ -1,0 +1,25 @@
+/* Seller: Customers list, Customer 360, Subscribers */
+.cu-ok{background:#d6ecd9;color:#1d3a24;border-radius:10px;padding:8px 12px;margin:0 0 12px;font-size:13px}
+.cu-head{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.cu-av{width:54px;height:54px;border-radius:50%;background:var(--rose);display:grid;place-items:center;font:500 22px 'Playfair Display',Georgia,serif;flex:none}
+.cu-head .grow{flex:1;min-width:200px}
+.cu-head h1{margin:0;font-size:22px}
+.cu-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;margin-top:12px}
+.cu-acts form{margin:0}
+.cu-d>summary{list-style:none;cursor:pointer;display:inline-block}
+.cu-d>summary::-webkit-details-marker{display:none}
+.cu-form{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:8px;min-width:260px}
+.cu-form label{display:block;font-size:12px;color:var(--mut);margin:0}
+.cu-form input,.cu-form textarea{display:block;width:100%;margin:3px 0 10px}
+.cu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.cu-block{background:#f6e3a8;color:#2a2623;border-radius:10px;padding:8px 12px;font-size:13px;margin-top:12px}
+.cu-tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.cu-tag{display:inline-flex;align-items:center;gap:4px;background:var(--rose);border-radius:12px;padding:2px 4px 2px 10px;font-size:12px}
+.cu-tag form{margin:0}
+.cu-tag button{border:0;background:none;cursor:pointer;color:inherit;font-size:15px;line-height:1;padding:0 6px}
+.cu-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cu-row input{flex:1 1 180px;margin:0;min-width:0}
+.cu-note{border-top:1px solid var(--line);padding:10px 0}
+.cu-note:first-of-type{border-top:0}
+.cu-note p{margin:2px 0 0;white-space:pre-line;word-break:break-word}
+.pos{color:#2f7d46}.neg{color:#b5473d}

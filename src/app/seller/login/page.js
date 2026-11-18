@@ -1,20 +1,18 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
+import { STAFF } from "@/lib/perms";
+import AuthShell from "./AuthShell";
 import Form from "./Form";
 
-export const metadata = { title: "Seller Login" };
+export const dynamic = "force-dynamic";
+export const metadata = { title: "Store Admin Login" };
 
-export default async function SellerLogin() {
+export default async function StaffLogin() {
   const user = await getUser();
-  if (user?.role === "seller") redirect("/seller");
+  if (user && STAFF.includes(user.role)) redirect("/seller");
   return (
-    <>
-      <h2>Seller Login</h2>
+    <AuthShell title="Store Admin Login" sub="Apna email ya mobile aur password daalein.">
       <Form />
-      <p className="mut">
-        Naye seller hain? <Link href="/seller/register" style={{ textDecoration: "underline" }}>Register karein</Link>
-      </p>
-    </>
+    </AuthShell>
   );
 }

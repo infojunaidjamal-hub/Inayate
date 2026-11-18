@@ -7,7 +7,7 @@ import { useCart } from "./CartProvider";
 // Sticky "Add to cart / Buy" bar of the product page.
 // Add to cart: adds in the background and opens the cart drawer (no page change).
 // Without JavaScript, the same button falls back to the old server action + redirect.
-export default function BuyBox({ id, out, price }) {
+export default function BuyBox({ id, vid = null, out, price }) {
   const { addItem } = useCart();
   const [adding, setAdding] = useState(false);
 
@@ -15,14 +15,15 @@ export default function BuyBox({ id, out, price }) {
     e.preventDefault();
     if (adding) return;
     setAdding(true);
-    try { await addItem(id); } finally { setAdding(false); }
+    try { await addItem(id, vid); } finally { setAdding(false); }
   }
 
   return (
     <form className="pp-buy">
       <input type="hidden" name="id" value={id} />
-      <button formAction={addToCart} onClick={onAdd} disabled={out || adding} aria-busy={adding}>
-        {adding ? "Adding…" : "Add to cart"}
+      {vid ? <input type="hidden" name="v" value={vid} /> : null}
+      <button formAction={addToCart} onClick={onAdd} disabled={adding} aria-busy={adding}>
+        {adding ? "Adding…" : out ? "Add to cart (save for later)" : "Add to cart"}
       </button>
       <button formAction={buyNow} disabled={out} className="go">{out ? "Out of stock" : `Buy at ${inr(price)}`}</button>
     </form>

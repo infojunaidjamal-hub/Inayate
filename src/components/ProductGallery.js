@@ -21,6 +21,18 @@ export default function ProductGallery({ images, name, main, dark, productId, in
     return () => window.removeEventListener("keydown", k);
   }, [zoom, n]);
 
+  // seller ne variant ki photo chuni ho to usi photo par le jao
+  useEffect(() => {
+    const h = (e) => {
+      const k = images.indexOf(e.detail), r = rail.current;
+      if (k < 0 || !r || !r.children[k]) return;
+      const c = r.children[k], f = r.children[0];
+      r.scrollTo({ left: c.offsetLeft - f.offsetLeft, top: c.offsetTop - f.offsetTop, behavior: "smooth" });
+    };
+    window.addEventListener("pp-image", h);
+    return () => window.removeEventListener("pp-image", h);
+  }, [images]);
+
   const onScroll = () => {
     const r = rail.current;
     if (!r) return;

@@ -4,12 +4,13 @@ import Razorpay from "razorpay";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { applyPayment } from "@/lib/payments";
+import { routeNewOrder } from "@/lib/orderFlow";
 import { one, run } from "@/lib/db";
 import { getUser } from "@/lib/auth";
 
 async function myOrder(orderNo) {
   const user = await getUser();
-  if (!user || user.role === "seller") return null;
+  if (!user || user.role !== "buyer") return null;
   return one("SELECT * FROM orders WHERE order_no = ? AND user_id = ?", orderNo, user.id) ?? null;
 }
 
@@ -68,6 +69,7 @@ export async function verifyPayment(orderNo, resp) {
     "UPDATE orders SET pay_status = 'Paid', status = 'Placed', razorpay_payment_id = ? WHERE id = ? AND status = 'Awaiting Payment'",
     razorpay_payment_id, o.id
   );
+  routeNewOrder(o.id);
   revalidatePath("/", "layout");
   return { ok: true };
 }

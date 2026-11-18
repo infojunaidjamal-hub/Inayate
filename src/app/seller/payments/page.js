@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireSeller } from "@/lib/auth";
+import { requirePerm } from "@/lib/auth";
 import { all, one, inr } from "@/lib/db";
 import { fmtDate, statusClass } from "@/lib/format";
 
@@ -17,7 +17,7 @@ const payClass = (s) => ({ Paid: "g", Refunded: "g", "COD Pending": "y", "Paymen
 const sum = (where) => one(`SELECT COALESCE(SUM(total), 0) s, COUNT(*) c FROM orders WHERE ${where}`);
 
 export default async function Payments({ searchParams }) {
-  await requireSeller();
+  await requirePerm("payments");
   const { f = "all" } = await searchParams;
   const key = FILTERS[f] ? f : "all";
   const online = sum("pay_method <> 'COD' AND pay_status = 'Paid'");

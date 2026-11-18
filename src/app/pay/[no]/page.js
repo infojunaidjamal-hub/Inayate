@@ -10,7 +10,7 @@ export default async function PayPage({ params }) {
   const { no } = await params;
   const user = await getUser();
   if (!user) redirect("/login");
-  if (user.role === "seller") redirect("/seller");
+  if (user.role !== "buyer") redirect("/seller");
   const o = one("SELECT * FROM orders WHERE order_no = ? AND user_id = ?", no, user.id);
   if (!o) notFound();
   if (o.status !== "Awaiting Payment") redirect("/order/" + no);

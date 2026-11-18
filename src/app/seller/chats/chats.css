@@ -1,0 +1,21 @@
+/* Seller: Chatbot log + sikhaye hue jawab */
+.ch-ok{background:#d6ecd9;color:#1d3a24;border-radius:10px;padding:8px 12px;margin:0 0 12px;font-size:13px}
+.ch-d{margin:6px 0 0}
+.ch-d>summary{cursor:pointer;color:var(--acc);font-weight:500;font-size:13px;list-style:none}
+.ch-d>summary::-webkit-details-marker{display:none}
+.ch-d[open]>summary{margin-bottom:8px}
+.ch-form{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;margin:0;min-width:240px}
+.ch-form label{display:block;font-size:12px;color:var(--mut);margin:0}
+.ch-form input,.ch-form textarea{display:block;width:100%;margin:3px 0 10px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}
+.ch-form textarea{resize:vertical}
+.ch-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:640px){.ch-two{grid-template-columns:1fr}}
+.ch-hint{font-size:12px;color:var(--mut);margin:0 0 10px}
+.ch-act{display:flex;gap:8px;margin-top:8px}
+.ch-act form{margin:0}
+.ch-item{border-top:1px solid var(--line);padding:10px 0}
+.ch-item:first-of-type{border-top:0}
+.ch-item>summary{cursor:pointer;list-style:none;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ch-item>summary::-webkit-details-marker{display:none}
+.ch-item[open]>summary{margin-bottom:10px}
+.ch-prev{white-space:pre-line;color:var(--mut);font-size:13px;margin:2px 0 0}

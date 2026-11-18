@@ -4,12 +4,15 @@ import { revalidatePath } from "next/cache";
 import { all, one, run, transaction } from "@/lib/db";
 import { getUser } from "@/lib/auth";
 import { returnWindowOpen } from "@/lib/orders";
+import { giveStock } from "@/lib/catalog";
 import { SITE } from "@/lib/site";
+import { moveOrder, addEvent, CANCEL_REASONS, RETURN_REASONS } from "@/lib/orderFlow";
+import { storeImage, deleteStored } from "@/lib/images";
 
 async function buyerOnly(next = "/account") {
   const user = await getUser();
   if (!user) redirect("/login?next=" + next);
-  if (user.role === "seller") redirect("/seller");
+  if (user.role !== "buyer") redirect("/seller");
   return user;
 }
 
@@ -44,9 +47,47 @@ export async function addAddress(prev, form) {
   return { ok: "Address save ho gaya." };
 }
 
+export async function updateAddress(prev, form) {
+  const user = await buyerOnly("/account/addresses");
+  const id = Number(form.get("id"));
+  const v = {
+    label: String(form.get("label") || "Home").trim() || "Home",
+    name: String(form.get("name") || "").trim(),
+    line: String(form.get("line") || "").trim(),
+    city: String(form.get("city") || "").trim(),
+    state: String(form.get("state") || "").trim(),
+    pincode: String(form.get("pincode") || "").trim(),
+    makeDefault: form.get("makeDefault") === "on",
+  };
+  if (v.name.length < 2) return { error: "Naam likhein." };
+  if (v.line.length < 5) return { error: "Poora address likhein (ghar, society, area)." };
+  if (!v.city || !v.state) return { error: "City aur state likhein." };
+  if (!/^\d{6}$/.test(v.pincode)) return { error: "6 digit ka sahi pincode daalein." };
+  if (!one("SELECT id FROM addresses WHERE id = ? AND user_id = ?", id, user.id)) return { error: "Address nahi mila." };
+  transaction(() => {
+    if (v.makeDefault) run("UPDATE addresses SET is_default = 0 WHERE user_id = ?", user.id);
+    run(
+      "UPDATE addresses SET label = ?, name = ?, line = ?, city = ?, state = ?, pincode = ?, is_default = CASE WHEN ? = 1 THEN 1 ELSE is_default END WHERE id = ? AND user_id = ?",
+      v.label, v.name, v.line, v.city, v.state, v.pincode, v.makeDefault ? 1 : 0, id, user.id
+    );
+  });
+  revalidatePath("/account/addresses");
+  return { ok: "Address update ho gaya." };
+}
+
 export async function deleteAddress(form) {
   const user = await buyerOnly("/account/addresses");
-  run("DELETE FROM addresses WHERE id = ? AND user_id = ?", Number(form.get("id")), user.id);
+  const id = Number(form.get("id"));
+  transaction(() => {
+    const a = one("SELECT is_default FROM addresses WHERE id = ? AND user_id = ?", id, user.id);
+    if (!a) return;
+    run("DELETE FROM addresses WHERE id = ? AND user_id = ?", id, user.id);
+    // default wala hata to sabse purana address default ban jaye
+    if (a.is_default) {
+      const next = one("SELECT id FROM addresses WHERE user_id = ? ORDER BY id LIMIT 1", user.id);
+      if (next) run("UPDATE addresses SET is_default = 1 WHERE id = ?", next.id);
+    }
+  });
   revalidatePath("/account/addresses");
 }
 
@@ -77,34 +118,53 @@ export async function toggleWishlist(form) {
 export async function cancelOrder(form) {
   const user = await buyerOnly();
   const no = String(form.get("order_no") || "");
+  const reason = String(form.get("reason") || "").trim();
+  const comment = String(form.get("comment") || "").trim().slice(0, 200);
   const o = one("SELECT * FROM orders WHERE order_no = ? AND user_id = ?", no, user.id);
-  if (o && ["Placed", "Confirmed", "Awaiting Payment"].includes(o.status)) {
-    transaction(() => {
-      for (const i of all("SELECT * FROM order_items WHERE order_id = ?", o.id)) {
-        if (i.product_id) run("UPDATE products SET stock = stock + ? WHERE id = ?", i.qty, i.product_id); // stock wapas
-      }
-      run(
-        "UPDATE orders SET status = 'Cancelled', pay_status = ? WHERE id = ?",
-        o.pay_status === "Paid" ? "Refund Initiated" : "Cancelled", o.id
-      );
-    });
-  }
+  const back = (m) => redirect("/order/" + no + (m ? "?msg=" + encodeURIComponent(m) : ""));
+  if (!o) back("");
+  if (!CANCEL_REASONS.includes(reason)) back("Cancel karne ki wajah chuniye.");
+  if (reason === "Other" && comment.length < 3) back("Kripya wajah likhein.");
+  if (!["Awaiting Payment", "Placed", "On Hold", "Confirmed", "Packed", "Ready to ship"].includes(o.status)) back("Ab ye order cancel nahi ho sakta, wo courier ko de diya gaya hai.");
+  let err = null;
+  transaction(() => {
+    const r = moveOrder(o, "Cancelled", { who: "buyer", force: true, note: comment ? `${reason}: ${comment}` : reason });
+    if (r.error) err = r.error;
+  });
   revalidatePath("/", "layout");
-  redirect("/order/" + no);
+  back(err || "Order cancel ho gaya.");
 }
+
+const RETURN_MAX_PHOTO = 5 * 1024 * 1024;
 
 export async function requestReturn(prev, form) {
   const user = await buyerOnly();
   const no = String(form.get("order_no") || "");
-  const reason = String(form.get("reason") || "").trim();
+  const code = String(form.get("reason_code") || "");
+  const comment = String(form.get("comment") || "").trim().slice(0, 500);
   const o = one("SELECT * FROM orders WHERE order_no = ? AND user_id = ?", no, user.id);
   if (!o || o.status !== "Delivered") return { error: "Is order ka return abhi nahi ho sakta." };
   if (!returnWindowOpen(o)) return { error: `Return ki ${SITE.returnDays} din ki seema khatam ho chuki hai.` };
-  if (reason.length < 5) return { error: "Return ki wajah thodi detail mein likhein." };
+  const rr = RETURN_REASONS.find((r) => r[0] === code);
+  if (!rr) return { error: "Return ki wajah chuniye." };
+  if (code === "other" && comment.length < 5) return { error: "Kripya wajah thodi detail mein likhein." };
   if (one("SELECT id FROM returns WHERE order_id = ?", o.id)) return { error: "Return request pehle se ho chuki hai." };
+
+  const files = ["photo1", "photo2", "photo3"].map((k) => form.get(k)).filter((f) => f && typeof f !== "string" && f.size > 0);
+  if (rr[2] && files.length < 2) return { error: `"${rr[1]}" ke liye kam se kam 2 photo zaroori hain.` };
+  const urls = [];
+  for (const f of files) {
+    if (f.size > RETURN_MAX_PHOTO) { for (const u of urls) await deleteStored(u); return { error: "Har photo 5 MB se chhoti honi chahiye." }; }
+    const r = await storeImage(f, "return-");
+    if (r.error) { for (const u of urls) await deleteStored(u); return { error: r.error }; }
+    urls.push(r.url);
+  }
+  const reason = comment ? `${rr[1]}: ${comment}` : rr[1];
   transaction(() => {
-    run("INSERT INTO returns (order_id, reason) VALUES (?, ?)", o.id, reason);
+    run("INSERT INTO returns (order_id, reason, reason_code, photos, stage) VALUES (?, ?, ?, ?, 'requested')", o.id, reason, code, JSON.stringify(urls));
     run("UPDATE orders SET status = 'Return Requested' WHERE id = ?", o.id);
+    addEvent(o.id, { kind: "return", code: "requested", label: "Return requested", detail: rr[1], who: "buyer" });
+    addEvent(o.id, { code: "Return Requested", label: "Return requested", detail: rr[1], who: "buyer" });
   });
   revalidatePath("/", "layout");
   redirect("/order/" + no);

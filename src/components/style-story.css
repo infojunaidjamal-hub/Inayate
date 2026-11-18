@@ -1,0 +1,107 @@
+/* Home page: Watch The Style Story. Rang preview ke hisaab se (#8f5f35). Saare naam .ss se shuru hote hain. */
+.ss{--ss-acc:#8f5f35;--ss-ink:#2a2623;--ss-mut:#6b625a;--ss-line:#e6dccf}
+.ss *{box-sizing:border-box}
+.ss-head{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;margin-bottom:28px}
+.ss-head h2{font-family:'Playfair Display',serif;font-weight:500;font-size:clamp(26px,4vw,36px);letter-spacing:.01em;margin:0}
+.ss-head i{display:block;width:64px;height:3px;background:var(--ss-acc)}
+.ss-head p{margin:0;font-size:14px;color:var(--ss-mut)}
+.ss-rail{overflow-x:auto;scrollbar-width:none}
+.ss-rail::-webkit-scrollbar{display:none}
+.ss-track{display:flex;gap:24px;width:max-content}
+/* Card ki chaurai video ke shape (--ss-r = chaurai/unchai) se nikalti hai: 3:4 mein lagbhag 255px, 4:3 mein 360px */
+.ss-card{display:flex;flex-direction:column;gap:12px;width:clamp(240px,calc(340px * var(--ss-r,.75)),360px);flex:none}
+.ss-vid{position:relative;aspect-ratio:var(--ss-ar,3 / 4);border-radius:14px;overflow:hidden;background:linear-gradient(160deg,#d9b99a,#8f5f35)}
+.ss-v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#d9c7b0}
+.ss-open{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;cursor:pointer;z-index:1}
+.ss-ctl{position:absolute;top:10px;right:10px;display:flex;gap:6px;z-index:2}
+.ss-btn{width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.ss-bigplay{position:absolute;left:50%;top:44%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;border:0;background:rgba(255,255,255,.88);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2}
+.ss-cap{position:absolute;left:12px;right:12px;bottom:16px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;pointer-events:none;z-index:2}
+.ss-cap span{background:rgba(255,255,255,.92);color:var(--ss-ink);padding:5px 10px;border-radius:6px;font-size:13px;font-weight:600;max-width:100%}
+.ss-bar{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.35);z-index:2}
+.ss-bar b{display:block;height:100%;width:0;background:#fff}
+.ss-prod{display:flex;gap:12px;align-items:center;text-align:left;font:inherit;color:inherit;background:#fff;border:1px solid var(--ss-line);border-radius:12px;padding:10px;min-height:44px;width:100%;cursor:pointer}
+.ss-th{display:block;border-radius:8px;object-fit:cover;background:#b88a5e;flex:none}
+.ss-pm{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ss-pn{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ss-pp{font-size:13px}
+.ss-pp s,.ss-price s,.ssv-p s{color:var(--ss-mut);margin-left:4px}
+.ss-pp em,.ss-price em,.ssv-p em{font-style:normal;color:var(--ss-acc);font-weight:600;margin-left:4px}
+.ss-dots{display:none;justify-content:center;gap:6px;margin-top:14px}
+.ss-dots i{width:6px;height:6px;border-radius:3px;background:#d9c7b0;display:block}
+.ss-dots i.on{width:18px;background:var(--ss-acc)}
+/* popup */
+.ss-mask{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
+.ss-mask-x{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(42,38,35,.55);cursor:pointer}
+.ss-pop{position:relative;width:min(820px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:#fff;border-radius:18px;display:flex;box-shadow:0 20px 60px rgba(0,0,0,.3);color:var(--ss-ink)}
+.ss-pop-img{width:360px;min-height:440px;background:linear-gradient(160deg,#d9b99a,#8f5f35) center/cover;flex:none}
+.ss-pop-body{flex:1;padding:32px;display:flex;flex-direction:column;gap:14px;position:relative;min-width:0}
+.ss-pop-body h3{margin:0;font-family:'Playfair Display',serif;font-weight:500;font-size:28px;padding-right:44px}
+.ss-pop-head{display:block}
+.ss-pop-ht{display:flex;flex-direction:column;gap:14px;min-width:0}
+.ss-pop-th{display:none}
+.ss-x{position:absolute;top:10px;right:10px;width:44px;height:44px;border-radius:50%;border:0;background:#f3ebe0;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.ss-rate{display:flex;align-items:center;gap:8px;font-size:13px;color:#4a423b}
+.ss-stars{display:flex;gap:2px}
+.ss-price{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px;font-size:28px}
+.ss-price b{font-weight:600}
+.ss-price s{font-size:16px;margin:0}
+.ss-price em{font-size:15px;margin:0}
+.ss-tax{font-size:12px;color:var(--ss-mut)}
+.ss-desc{margin:0;font-size:14px;line-height:1.6;color:#4a423b}
+.ss-acts{display:flex;gap:12px;margin-top:auto}
+.ss-b{flex:1;min-height:48px;display:flex;align-items:center;justify-content:center;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px;line-height:1;font-family:inherit;cursor:pointer;width:100%;border:1px solid var(--ss-ink);background:transparent;color:var(--ss-ink)}
+.ss-b-p{background:var(--ss-acc);border-color:var(--ss-acc);color:#fff}
+.ss-link{font-size:13px;color:var(--ss-acc);text-decoration:underline;min-height:24px}
+/* fullscreen viewer: upar video ka frame (video ke shape mein), uske neeche product card. Frame ki chaurai screen ki unchai ke hisaab se,
+   taaki video aur product card dono poori screen mein aa jayein */
+.ssv{position:fixed;inset:0;z-index:210;background:rgba(23, 20, 19, 0.9);display:flex;align-items:center;justify-content:center;padding:12px;color:#fff;overflow:auto}
+.ssv-in{width:min(100%,960px,max(320px,calc((100dvh - 230px) * var(--ss-r,.75))));display:flex;flex-direction:column;gap:12px;margin:auto}
+.ssv-frame{position:relative;aspect-ratio:var(--ss-ar,3 / 4);border-radius:14px;overflow:hidden;background:#2a2623}
+.ssv-v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ssv-top{position:absolute;left:0;right:0;top:0;height:96px;background:linear-gradient(rgba(0,0,0,.4),transparent);pointer-events:none}
+.ssv-zone{position:absolute;top:64px;bottom:0;border:0;background:transparent;cursor:pointer;display:flex;align-items:center;padding:0 8px;z-index:1}
+.ssv-prev{left:0;width:40%;justify-content:flex-start}
+.ssv-next{right:0;width:60%;justify-content:flex-end}
+.ssv-segs{position:absolute;top:10px;left:10px;right:10px;display:flex;gap:4px;z-index:2}
+.ssv-seg{flex:1;height:3px;background:rgba(255,255,255,.35);border-radius:2px;overflow:hidden}
+.ssv-seg b{display:block;height:100%;background:#fff}
+.ssv-bar{position:absolute;top:20px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;z-index:2}
+.ssv-cap{position:absolute;left:14px;right:14px;bottom:14px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;pointer-events:none;z-index:2}
+.ssv-cap span{background:rgba(255,255,255,.92);color:#2a2623;padding:5px 11px;border-radius:6px;font-size:14px;font-weight:600;max-width:100%}
+.ssv-prod{background:#fff;color:#2a2623;border-radius:16px;padding:12px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.ssv-prod-r{display:flex;gap:12px;align-items:center;min-width:0;flex:1 1 200px}
+.ssv-prod-r>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ssv-n{font-size:15px;font-weight:600}
+.ssv-p{font-size:14px;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:6px}
+.ssv-p s,.ssv-p em{margin-left:0;white-space:nowrap}
+.ssv-acts{display:flex;gap:10px;flex:1 1 240px;max-width:360px}
+.ssv-acts .ss-b{min-height:44px}
+/* Chhoti unchai wali screen (phone ko aadha kar ke pakda ho): video baayein, product card daayein, taaki sab screen mein aaye */
+@media (max-height:520px) and (orientation:landscape){
+  .ssv-in{flex-direction:row;align-items:center;width:min(100%,960px);gap:12px}
+  .ssv-frame{flex:none;width:calc((100dvh - 24px) * var(--ss-r,.75));max-width:62%}
+  .ssv-prod{flex:1;min-width:0;flex-direction:column;align-items:stretch;justify-content:center}
+  .ssv-prod-r,.ssv-acts{flex:none;max-width:none}
+  .ssv-acts{flex-direction:column}
+}
+/* phone */
+@media(max-width:640px){
+  .ss-head h2{font-size:26px}
+  .ss-head p{display:none}
+  .ss-track{gap:14px;padding:0 16px}
+  .ss-card{width:clamp(220px,calc(300px * var(--ss-r,.75)),300px)}
+  .ss-dots{display:flex}
+  .ss-prod{padding:8px;gap:10px}
+  .ss-pn{font-size:13px}.ss-pp{font-size:12px}
+  .ss-mask{align-items:flex-end;padding:0}
+  .ss-pop{width:100%;flex-direction:column;border-radius:20px 20px 0 0;max-height:88dvh}
+  .ss-pop-img{display:none}
+  .ss-pop-body{padding:20px 16px 24px}
+  .ss-pop-body h3{font-size:22px}
+  .ss-pop-head{display:flex;gap:14px;align-items:flex-start}
+  .ss-pop-th{display:block;flex:none;width:84px;height:84px;border-radius:12px;background:linear-gradient(160deg,#d9b99a,#8f5f35) center/cover}
+  .ss-pop-ht{flex:1;gap:8px}
+  .ss-price{font-size:22px}
+}
+@media(prefers-reduced-motion:reduce){.ss-rail{scroll-behavior:auto}}

@@ -1,54 +1,45 @@
 import Link from "next/link";
 import { getUser } from "@/lib/auth";
 import { logout } from "@/app/actions";
+import { STAFF, ROLE_LABEL, PERMS, can } from "@/lib/perms";
+import { dailyBackup } from "@/lib/catalog";
+import SideNav from "./SideNav";
+import "./seller.css";
 
-export const metadata = { robots: { index: false, follow: false } };
+export const metadata = { robots: { index: false, follow: false }, title: "Store Admin" };
 
-// Seller area ka apna alag header hai.
-// Buyer wala header/footer (Home, Products, Cart...) seller pages par chhupa diya jata hai.
+// Purane menu ke extra links (patch chalate waqt apne aap bhare jate hain)
+const EXTRAS = JSON.parse('[]');
+
+// Seller area ka apna alag design hai. Buyer wala header/footer yahan chhupa rehta hai.
+// Staff (Owner / Manager / Operator) nahi hai to sirf page dikhta hai (login, OTP, setup pages apna poora design khud laate hain).
 export default async function SellerLayout({ children }) {
   const user = await getUser();
-  const isSeller = user?.role === "seller";
+  const staff = !!user && STAFF.includes(user.role);
+  if (staff) dailyBackup(); // roz ek baar database ka backup (data/backups)
+  const hide = <style>{"body > .promo, body > header, body > footer, body > .wa { display: none; }"}</style>;
 
+  if (!staff) return <>{hide}{children}</>;
+
+  const allow = Object.keys(PERMS).filter((p) => can(user.role, p)); // menu mein sirf wahi jo is role ko milta hai
   return (
     <>
-      <style>{"body > .promo, body > header, body > footer, body > .wa { display: none; }"}</style>
-
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 18,
-          flexWrap: "wrap",
-          paddingBottom: 14,
-          marginBottom: 20,
-          borderBottom: "1px solid var(--line)",
-        }}
-      >
-        <Link href="/seller" className="logo">Seller<span>.</span>Panel</Link>
-
-        {isSeller ? (
-          <nav>
-            <Link href="/seller">Dashboard</Link>
-            <Link href="/seller/products">Products</Link>
-            <Link href="/seller/orders">Orders</Link>
-            <Link href="/seller/returns">Returns</Link>
-            <Link href="/seller/payments">Payments</Link>
-            <Link href="/seller/customers">Customers</Link>
+      {hide}
+      <div className="sp">
+        <aside className="sp-side">
+          <div className="sp-who">
+            <div className="sp-av">{(user.name || "S").trim().charAt(0).toUpperCase()}</div>
+            <b>{user.name}</b>
+            <small>Store Admin · {ROLE_LABEL[user.role]}</small>
+          </div>
+          <SideNav extras={EXTRAS} allow={allow} />
+          <div className="sp-foot">
             <Link href="/">View Shop ↗</Link>
-            <form action={logout} style={{ display: "inline" }}>
-              <button style={{ all: "unset", cursor: "pointer" }}>Logout</button>
-            </form>
-          </nav>
-        ) : (
-          <nav style={{ alignItems: "center" }}>
-            <Link href="/seller/login">Login</Link>
-            <Link href="/seller/register" className="btn a">Start Selling</Link>
-          </nav>
-        )}
+            <form action={logout}><button className="sp-out">Logout</button></form>
+          </div>
+        </aside>
+        <div className="sp-main">{children}</div>
       </div>
-
-      {children}
     </>
   );
 }

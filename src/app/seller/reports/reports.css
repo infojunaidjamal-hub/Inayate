@@ -1,0 +1,17 @@
+/* Reports & Excel page */
+.rp-filters{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:8px}
+.rp-filters label{display:block;font-size:12px;color:var(--mut);margin:0}
+.rp-filters select,.rp-filters input{display:block;width:auto;min-width:130px;margin:3px 0 0;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit}
+.rp-filters .btn{align-self:flex-end}
+.rp-note{margin:0 0 22px;color:var(--mut);font-size:13px}
+.rp-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;margin-bottom:30px}
+.rp-card{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.rp-card h3{font:500 19px 'Playfair Display',serif;margin:0 0 6px}
+.rp-card p{margin:0 0 8px;font-size:13px;color:var(--mut)}
+.rp-card .rp-uses{font-size:12px}
+.rp-count{margin-top:auto;padding-top:8px;font-size:13px}
+.rp-btns{display:flex;gap:8px;margin-top:10px}
+.rp-btns a{padding:8px 18px;border:1px solid var(--ink);border-radius:24px;font:500 13px Poppins,sans-serif;text-decoration:none;color:var(--ink)}
+.rp-btns a.x{background:#9a6a3f;border-color:#9a6a3f;color:#fff}
+.rp-btns a:hover{opacity:.85}
+.rp-off{opacity:.55}

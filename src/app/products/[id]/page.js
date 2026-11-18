@@ -7,17 +7,24 @@ import MiniCard from "@/components/MiniCard";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import BagArt from "@/components/BagArt";
 import { imagesOf, withCovers } from "@/lib/images";
-import { withRatings } from "@/lib/ratings";
+import { withRatings, combineRating } from "@/lib/ratings";
+import { hasVariants, optionNames, variantsOf, VISIBLE_SQL } from "@/lib/catalog";
+import { VariantProvider, VariantPicker, VariantPrice, VariantBuy, GroupPicker } from "@/components/Variants";
+import { parseSwatches } from "@/lib/swatch";
+import { colourLabel } from "@/lib/group";
 import { parseSpecs } from "@/lib/specs";
 import { deliveryBy } from "@/lib/delivery";
 import { SITE } from "@/lib/site";
 import { abs } from "@/lib/seo";
 import { all, one, inr } from "@/lib/db";
 import BuyBox from "@/components/BuyBox";
+import NotifyForm from "@/components/NotifyForm";
+import { myWaiting } from "../notify";
 import { getUser } from "@/lib/auth";
 import { fmtDate } from "@/lib/format";
 import ReviewForm from "./ReviewForm";
 import "../../product.css";
+import { waLink } from "@/lib/whatsapp";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +42,6 @@ export async function generateMetadata({ params }) {
   };
 }
 
-const colourOf = (p) => (p.colours ? p.colours.split(",")[0].trim() : "") || "Default";
 
 export default async function ProductDetail({ params }) {
   const { id } = await params;
@@ -48,12 +54,18 @@ export default async function ProductDetail({ params }) {
   const imgs = imagesOf(p.id).map((i) => i.url);
   const off = p.mrp > p.price ? Math.round(((p.mrp - p.price) / p.mrp) * 100) : 0;
 
+  // seller ke banaye variants (colour / size...): chuna hua variant price, stock aur photo badalta hai
+  const vrows = hasVariants(p) ? variantsOf(p.id, { activeOnly: true }) : [];
+  const vnames = optionNames(p);
+  const rawAvg = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
+  const rate = p.show_rating === 0 ? { rating: null, rating_count: 0, rating_initial: false } : combineRating(p, rawAvg, reviews.length);
+
   // colour variants: same group_key wale products
   const variants = p.group_key
-    ? withCovers(all("SELECT * FROM products WHERE group_key = ? AND status = 'Active' ORDER BY id", p.group_key))
+    ? withCovers(all("SELECT * FROM products WHERE group_key = ? AND status = 'Active' ORDER BY group_pos, id", p.group_key))
     : [];
   const similar = withRatings(withCovers(all(
-    "SELECT * FROM products WHERE status = 'Active' AND id <> ? ORDER BY (category = ?) DESC, id DESC LIMIT 8", p.id, p.category
+    `SELECT * FROM products WHERE status = 'Active' AND id <> ? AND ${VISIBLE_SQL} ORDER BY (category = ?) DESC, id DESC LIMIT 8`, p.id, p.category
   )));
 
   // Specifications: system ki jaankari + seller ki likhi lines (same naam ho to seller ki chalti hai)
@@ -75,10 +87,10 @@ export default async function ProductDetail({ params }) {
     image: imgs.map(abs),
     brand: { "@type": "Brand", name: SITE.name },
     offers: {
-      "@type": "Offer",
+      "@type": vrows.length > 1 ? "AggregateOffer" : "Offer",
       url: abs(`/products/${p.id}`),
       priceCurrency: "INR",
-      price: String(p.price),
+      ...(vrows.length > 1 ? { lowPrice: String(Math.min(...vrows.map((v) => v.price))), highPrice: String(Math.max(...vrows.map((v) => v.price))), offerCount: vrows.length } : { price: String(p.price) }),
       availability: p.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
     },
@@ -93,56 +105,61 @@ export default async function ProductDetail({ params }) {
               WHERE o.user_id = ? AND o.status = 'Delivered' AND i.product_id = ?`, buyer.id, p.id)
     && !one("SELECT id FROM reviews WHERE user_id = ? AND product_id = ?", buyer.id, p.id);
   const by = deliveryBy();
-  const ask = `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(`Mujhe "${p.name}" ke baare mein poochhna hai: ${abs(`/products/${p.id}`)}`)}`;
+  const ask = waLink(`Mujhe "${p.name}" ke baare mein poochhna hai: ${abs(`/products/${p.id}`)}`);
   const out = p.stock === 0;
+  const notifyUser = out ? await getUser() : null;
+  const already = out && notifyUser && notifyUser.role === "buyer" ? await myWaiting(p.id, notifyUser.id) : false;
+  const Wrap = ({ children }) => (vrows.length ? <VariantProvider productId={p.id} names={vnames} variants={vrows} swatches={parseSwatches(p.option_swatches)}>{children}</VariantProvider> : <>{children}</>);
 
   return (
     <div className="pp">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld).replace(/</g, "\\u003c") }} />
       <div className="pp-crumb">
-        <Link href="/">Home</Link> / <Link href="/products">Products</Link> / <Link href={`/products?cat=${encodeURIComponent(p.category)}`}>{p.category}</Link> / {p.name}
+        <Link href="/">Home</Link> / <Link href="/products">Products</Link> / <Link href={`/products?cat=${encodeURIComponent(p.category)}`}>{p.category}</Link> / {p.subcategory ? <><Link href={`/products?cat=${encodeURIComponent(p.category)}&sub=${encodeURIComponent(p.subcategory)}`}>{p.subcategory}</Link> / </> : null}{p.name}
       </div>
 
       <div className="pp-grid">
         <ProductGallery images={imgs} name={p.name} main={p.colour_main} dark={p.colour_dark} productId={p.id} inWish={inWish} />
 
         <div className="pp-side">
+          <Wrap>
           {variants.length > 1 && (
-            <>
-              <div className="pp-mut">Colour: <b style={{ color: "var(--ink)" }}>{colourOf(p)}</b></div>
-              <div className="pp-sws">
-                {variants.map((v) => (
-                  <Link key={v.id} href={`/products/${v.id}`} className={"pp-sw" + (v.id === p.id ? " on" : "")} title={colourOf(v)} aria-label={colourOf(v)}>
-                    {v.image ? <img src={v.image} alt={colourOf(v)} /> : <BagArt main={v.colour_main} dark={v.colour_dark} />}
-                  </Link>
-                ))}
-              </div>
-            </>
+            <GroupPicker
+              current={p.id}
+              items={variants.map((v) => ({ id: v.id, label: colourLabel(v), image: v.image || null, main: v.colour_main, dark: v.colour_dark, out: v.stock <= 0 }))}
+            />
           )}
 
           <h1>{p.name}</h1>
           <p style={{ margin: "4px 0" }}>
-            {avg ? <><span className="pp-rate">{avg} ★</span> <span className="pp-mut">{reviews.length} {reviews.length === 1 ? "review" : "reviews"}</span> <span className="pp-blue" style={{ fontSize: 12 }}>✔ Verified Buyers</span></>
-              : <span className="pp-mut">Abhi koi review nahi</span>}
+            {rate.rating ? <><span className="pp-rate">{rate.rating} ★</span> <span className="pp-mut">{rate.rating_count} {rate.rating_count === 1 ? "rating" : "ratings"}</span>{reviews.length > 0 && <> <span className="pp-blue" style={{ fontSize: 12 }}>✔ Verified Buyers</span></>}{rate.rating_initial && <span className="pp-mut" style={{ fontSize: 11 }}> (includes initial rating)</span>}</>
+              : p.show_rating === 0 ? null : <span className="pp-mut">Abhi koi review nahi</span>}
           </p>
-          <div>
-            {off > 0 && <span className="pp-off">↓{off}% </span>}
-            {off > 0 && <s className="pp-mut">{inr(p.mrp)} </s>}
-            <span className="pp-price">{inr(p.price)}</span>
-          </div>
-          <div className="pp-mut" style={{ fontSize: 12 }}>
-            Inclusive of all taxes · {out ? <b style={{ color: "#b8463c" }}>Out of stock</b> : p.stock <= 5 ? <b style={{ color: "#b8463c" }}>Only {p.stock} left</b> : <b style={{ color: "var(--pp-green)" }}>In stock</b>}
-          </div>
+          {vrows.length ? <VariantPrice /> : (
+            <>
+              <div>
+                {off > 0 && <span className="pp-off">↓{off}% </span>}
+                {off > 0 && <s className="pp-mut">{inr(p.mrp)} </s>}
+                <span className="pp-price">{inr(p.price)}</span>
+              </div>
+              <div className="pp-mut" style={{ fontSize: 12 }}>
+                Inclusive of all taxes · {out ? <b style={{ color: "#b8463c" }}>Out of stock</b> : p.stock <= 5 ? <b style={{ color: "#b8463c" }}>Only {p.stock} left</b> : <b style={{ color: "var(--pp-green)" }}>In stock</b>}
+              </div>
+            </>
+          )}
+          {vrows.length ? <VariantPicker /> : null}
 
           <div className="pp-box">
             <h3>Offers</h3>
-            {off > 0 && <div className="pp-offer"><span>🏷️</span><span><b>{off}% ki chhoot</b> abhi laagu hai (MRP {inr(p.mrp)} se)</span></div>}
-            <div className="pp-offer"><span>🚚</span><span><b>Free delivery</b> {inr(SITE.freeShippingAbove)} se upar ke orders par</span></div>
+            {off > 0 && !vrows.length && <div className="pp-offer"><span>🏷️</span><span><b>{off}% ki chhoot</b> abhi laagu hai (MRP {inr(p.mrp)} se)</span></div>}
+            <div className="pp-offer"><span>🚚</span><span><b>Free delivery</b> {SITE.freeShippingAbove > 0 ? `${inr(SITE.freeShippingAbove)} se upar ke orders par` : "har order par"}</span></div>
             <div className="pp-offer"><span>💵</span><span><b>Cash on Delivery</b> available hai</span></div>
             <div className="pp-offer"><span>↩️</span><span><b>{SITE.returnDays} din</b> mein aasaan return</span></div>
           </div>
 
-          <DeliveryBox price={p.price} freeAbove={SITE.freeShippingAbove} fee={SITE.shippingFee} returnDays={SITE.returnDays} />
+          {out && <NotifyForm id={p.id} defaultContact={notifyUser && notifyUser.role === "buyer" ? notifyUser.mobile : ""} already={already} />}
+
+          <DeliveryBox productId={p.id} returnDays={SITE.returnDays} />
 
           {highlights.length > 0 && (
             <div className="pp-box">
@@ -195,7 +212,8 @@ export default async function ProductDetail({ params }) {
             <a className="pp-btn" href={ask} target="_blank" rel="noopener noreferrer">WhatsApp par poochhein</a>
           </div>
 
-          <BuyBox id={p.id} out={out} price={p.price} />
+          {vrows.length ? <VariantBuy /> : <BuyBox id={p.id} out={out} price={p.price} />}
+          </Wrap>
         </div>
       </div>
 

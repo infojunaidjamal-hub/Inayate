@@ -23,6 +23,7 @@ export async function buyerLogin(prev, form) {
     return { error: "Mobile number ya password galat hai." };
   }
   clearFails(acct);
+  if (u.disabled) return { error: "Aapka account band kar diya gaya hai. Madad ke liye hamein WhatsApp par sampark karein." }; // seller ne block kiya hai (password sahi hone par hi dikhta hai)
   await startSession(u.id);
   redirect(safeNext(form.get("next")));
 }

@@ -1,8 +1,18 @@
 /** @type {import('next').NextConfig} */
+const dev = process.env.NODE_ENV !== "production";
+
 const nextConfig = {
   poweredByHeader: false,
+  // mobile / VS Code port forwarding se test karne ke liye (sirf development mein)
+  allowedDevOrigins: dev ? ["192.168.1.44", "*.devtunnels.ms", "*.*.devtunnels.ms"] : [],
   // seller product photos upload ke liye
-  experimental: { serverActions: { bodySizeLimit: "10mb" } },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb",
+      // VS Code tunnel origin ko localhost:3000 bana deta hai, isliye wo bhi allow (sirf development mein)
+      allowedOrigins: dev ? ["localhost:3000", "192.168.1.44:3000", "*.devtunnels.ms", "*.*.devtunnels.ms"] : [],
+    },
+  },
   turbopack: {
     rules: {
       "*.css": {

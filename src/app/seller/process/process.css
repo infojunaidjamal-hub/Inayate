@@ -1,0 +1,6 @@
+.pr-prod{display:flex;gap:10px;align-items:center;min-width:220px}
+.pr-prod img,.pr-ph{width:44px;height:44px;border-radius:8px;object-fit:cover;background:#eadfd2;flex:none}
+.pr-sla{display:inline-block;padding:2px 8px;border-radius:12px;font-size:12px;white-space:nowrap}
+.pr-sla.ok{background:#d6ecd9;color:#1d3a24}
+.pr-sla.soon{background:#fbe9c6;color:#6b4a07}
+.pr-sla.late{background:#f9dcd8;color:#7a2018}

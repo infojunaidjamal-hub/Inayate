@@ -1,0 +1,27 @@
+/* Seller: Categories */
+.cg{display:grid;grid-template-columns:minmax(0,2fr) minmax(260px,1fr);gap:16px;align-items:start}
+@media(max-width:900px){.cg{grid-template-columns:1fr}}
+.cg-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.cg-card h3{font:500 18px 'Playfair Display',serif;margin:0 0 10px}
+.cg-card label{display:block;font-size:12px;color:var(--mut);margin:0}
+.cg-card input:not([type=checkbox]),.cg-card select{display:block;width:100%;margin:3px 0 12px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit}
+.cg-ok{background:#d6ecd9;color:#1d3a24;border-radius:10px;padding:8px 12px;margin:0 0 10px;font-size:13px}
+.cg-list{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.cg-row{display:flex;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
+.cg-row:last-child{border-bottom:0}
+.cg-row.sub{padding-left:44px;background:#fdfbf8}
+.cg-th{width:36px;height:36px;border-radius:8px;background:var(--rose);overflow:hidden;flex:none}
+.cg-th img{width:100%;height:100%;object-fit:cover;display:block}
+.cg-name{flex:1;min-width:0}
+.cg-name small{color:var(--mut);display:block}
+.cg-ctl{display:flex;gap:6px;align-items:center}
+.cg-ctl form{margin:0}
+.cg-ctl button,.cg-editlink{padding:4px 12px;border:1px solid var(--ink);border-radius:16px;background:none;color:var(--ink);font:500 12px Poppins,sans-serif;cursor:pointer;list-style:none}
+.cg-editlink{text-decoration:none;display:inline-block}
+.cg-edit{padding:12px 14px 14px;background:#f7f0e7;border-bottom:1px solid var(--line)}
+.cg-edit.sub{padding-left:44px}
+.cg-edit form{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin:0 0 8px}
+.cg-edit label{font-size:12px;color:var(--mut);margin:0}
+.cg-edit input:not([type=checkbox]){display:block;margin:3px 0 0;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);font:inherit}
+.cg-edit .btn{padding:7px 16px}
+.cg-note{font-size:13px;color:var(--mut);margin:10px 0 0}

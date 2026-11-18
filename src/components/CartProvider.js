@@ -60,10 +60,11 @@ export default function CartProvider({ initialCount = 0, children }) {
 
   const openCart = useCallback(() => { setError(""); setOpen(true); run(cartSnapshot); }, [run]);
   const closeCart = useCallback(() => setOpen(false), []);
+  const refresh = useCallback(() => run(cartSnapshot), [run]); // checkout page: taaza cart lao
 
-  const addItem = useCallback(async (id) => {
+  const addItem = useCallback(async (id, vid) => {
     setError("");
-    await run(() => cartAdd(id));
+    await run(() => cartAdd(id, vid));
     setOpen(true);
   }, [run]);
 
@@ -74,23 +75,23 @@ export default function CartProvider({ initialCount = 0, children }) {
     return { ...c, items, ...totalsOf(items, c.rule) };
   });
 
-  const changeQty = useCallback((id, delta) => {
+  const changeQty = useCallback((key, delta) => {
     optimistic((items) => items.map((i) => {
-      if (i.id !== id) return i;
+      if (i.key !== key) return i;
       const qty = Math.max(1, Math.min(i.qty + delta, i.max));
       return { ...i, qty, line: qty * i.price };
     }));
-    return run(() => cartChange(id, delta));
+    return run(() => cartChange(key, delta));
   }, [run]);
 
-  const removeItem = useCallback((id) => {
-    optimistic((items) => items.filter((i) => i.id !== id));
-    return run(() => cartRemove(id));
+  const removeItem = useCallback((key) => {
+    optimistic((items) => items.filter((i) => i.key !== key));
+    return run(() => cartRemove(key));
   }, [run]);
 
   const value = useMemo(
-    () => ({ cart, open, busy, error, openCart, closeCart, addItem, changeQty, removeItem }),
-    [cart, open, busy, error, openCart, closeCart, addItem, changeQty, removeItem]
+    () => ({ cart, open, busy, error, openCart, closeCart, refresh, addItem, changeQty, removeItem }),
+    [cart, open, busy, error, openCart, closeCart, refresh, addItem, changeQty, removeItem]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

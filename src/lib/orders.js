@@ -1,6 +1,7 @@
 // Order ke helpers: adhura payment expire karna, return ki din-seema
 import { all, one, run, transaction } from "@/lib/db";
 import { SITE } from "@/lib/site";
+import { giveStock } from "@/lib/catalog";
 
 export const EXPIRY_MIN = 60; // online payment shuru kiya par poora nahi kiya, to itne minute baad order cancel
 
@@ -13,7 +14,7 @@ export function expireUnpaidOrders() {
         const r = run("UPDATE orders SET status = 'Cancelled', pay_status = 'Expired' WHERE id = ? AND status = 'Awaiting Payment'", o.id);
         if (r.changes !== 1) return;
         for (const i of all("SELECT * FROM order_items WHERE order_id = ?", o.id)) {
-          if (i.product_id) run("UPDATE products SET stock = stock + ? WHERE id = ?", i.qty, i.product_id);
+          if (i.product_id) giveStock(i.product_id, i.variant_id, i.qty);
         }
       });
     }

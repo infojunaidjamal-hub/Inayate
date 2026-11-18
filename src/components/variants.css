@@ -1,0 +1,42 @@
+/* Variant picker: har option ke upar "Selected Colour: Black".
+   Photo wale colours = thumbnail strip, bina photo ke colour = gol swatch, baaki options = rounded chips. */
+.vr-box{--vr-on:#111;margin:16px 0;min-width:0;max-width:100%}
+.vr-grp{margin:0 0 20px;min-width:0}
+.vr-lab{font-size:14px;color:#2a2623;margin-bottom:10px}
+.vr-lab b{font-weight:600}
+.vr-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* thumbnail strip */
+.vr-strip{position:relative}
+.vr-scroll{position:relative;flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;padding:2px 1px}
+.vr-scroll::-webkit-scrollbar{display:none}
+.vr-th{position:relative;flex:none;box-sizing:border-box;width:78px;height:84px;padding:4px;border:1px solid #dcdcdc;border-radius:12px;background:#fff;cursor:pointer;scroll-snap-align:start;transition:border-color .15s}
+a.vr-th{display:block;text-decoration:none}
+.vr-art{display:grid;place-items:center;width:100%;height:100%;border-radius:8px;background:#f3eee8;overflow:hidden}
+.vr-art svg{width:78%;height:auto;max-height:100%}
+.vr-th img{width:100%;height:100%;object-fit:cover;display:block;border-radius:8px;background:#f3eee8}
+.vr-th:hover{border-color:#9a9089}
+.vr-th.on{border:2px solid var(--vr-on);padding:3px}
+.vr-th.vr-so img{filter:grayscale(1) brightness(.55)}
+.vr-th.vr-so::after{content:"Out of stock";position:absolute;left:4px;right:4px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.88);color:#c8553d;font:500 10.5px/1.5 Poppins,sans-serif;text-align:center}
+.vr-arr{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:34px;height:34px;border:0;border-radius:50%;background:#2b2b2b;color:#fff;font:400 24px/1 Arial,sans-serif;display:grid;place-items:center;padding:0 0 3px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.28)}
+.vr-arr.l{left:4px}.vr-arr.r{right:4px}
+.vr-arr:hover{background:#000}
+
+/* gol swatch (jis colour ki photo nahi) */
+.vr-sw{position:relative;box-sizing:border-box;width:44px;height:44px;padding:0;border-radius:50%;border:3px solid transparent;overflow:hidden;cursor:pointer;box-shadow:0 0 0 1px rgba(0,0,0,.12);transition:border-color .15s,box-shadow .15s}
+.vr-sw:hover{border-color:#cfc5b9}
+.vr-sw.on{border-color:#fff;box-shadow:0 0 0 2px var(--vr-on)}
+.vr-sw.vr-so{opacity:.55}
+.vr-sw.vr-so::after{content:"";position:absolute;left:-10%;right:-10%;top:50%;border-top:2px solid #b8463c;transform:rotate(-35deg)}
+
+/* size / length chips */
+.vr-bt{box-sizing:border-box;min-width:50px;height:44px;padding:0 16px;border:1px solid #d4d4d4;border-radius:10px;background:#fff;color:#2a2623;font:500 15px Poppins,sans-serif;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.vr-bt:hover{border-color:#8f8f8f}
+.vr-bt.on{background:var(--vr-on);border-color:var(--vr-on);color:#fff;font-weight:700}
+.vr-bt.vr-so{color:#a39b93;text-decoration:line-through;background:#faf8f5}
+.vr-bt.vr-so.on{background:#555;border-color:#555;color:#fff}
+
+.vr-th:focus-visible,.vr-sw:focus-visible,.vr-bt:focus-visible,.vr-arr:focus-visible{outline:2px solid #e8912d;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.vr-th,.vr-sw,.vr-bt{transition:none}.vr-scroll{scroll-behavior:auto}}
+@media(max-width:420px){.vr-th{width:68px;height:74px}}

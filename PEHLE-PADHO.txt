@@ -1,4 +1,0 @@
-3 files replace karni hain (website band karke ya chalti hui, dono chalega):
- src\app\layout.js         -> maison-bags\src\app\
- src\app\page.js           -> maison-bags\src\app\
- src\app\seller\layout.js  -> maison-bags\src\app\seller\

@@ -1,6 +1,7 @@
 "use client";
 import { useActionState } from "react";
 import { resetCustomerPassword } from "../actions";
+import { waTo } from "@/lib/whatsapp";
 
 export default function ResetForm({ id, mobile }) {
   const [s, action, busy] = useActionState(resetCustomerPassword, null);
@@ -15,7 +16,7 @@ export default function ResetForm({ id, mobile }) {
       {s?.password && (
         <p className="ok" style={{ margin: "6px 0 0" }}>
           Naya password: <b>{s.password}</b><br />
-          <a href={`https://wa.me/91${mobile}?text=${encodeURIComponent("Aapka naya temporary password: " + s.password + "\nLogin ke baad Account > Password badlein se apna password badal lein.")}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>WhatsApp par bhejein</a>
+          <a href={waTo(mobile, "Aapka naya temporary password: " + s.password + "\nLogin ke baad Account > Password badlein se apna password badal lein.")} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>WhatsApp par bhejein</a>
           <br /><small>Ye sirf ek baar dikhega.</small>
         </p>
       )}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import BagArt from "./BagArt";
 import { useCart } from "./CartProvider";
 import { inr } from "@/lib/money";
+import "./stock.css";
 
 const FOCUSABLE = 'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
@@ -64,23 +65,30 @@ export default function CartDrawer() {
           ) : (
             <ul className="cd-list">
               {items.map((i) => (
-                <li className="cd-item" key={i.id}>
+                <li className="cd-item" key={i.key}>
                   <Link href={`/products/${i.id}`} className="cd-th" aria-label={i.name}>
                     {i.image ? <img src={i.image} alt="" loading="lazy" /> : <BagArt main={i.colourMain} dark={i.colourDark} />}
                   </Link>
                   <div className="cd-info">
                     <Link href={`/products/${i.id}`} className="cd-name">{i.name}</Link>
                     <span className="mut">{inr(i.price)}</span>
+                    {i.soldOut ? (
+                      <>
+                        <span className="tag r">Out of stock</span>
+                        <Link href={`/products/${i.id}#notify`} className="cd-notify">Notify me when back</Link>
+                      </>
+                    ) : <>
                     {i.stock <= 5 && <span className="tag y">Only {i.stock} left</span>}
                     <div className="cd-qty" role="group" aria-label={`Quantity of ${i.name}`}>
-                      <button type="button" onClick={() => changeQty(i.id, -1)} disabled={i.qty <= 1} aria-label="Decrease quantity">−</button>
+                      <button type="button" onClick={() => changeQty(i.key, -1)} disabled={i.qty <= 1} aria-label="Decrease quantity">−</button>
                       <b aria-live="polite">{i.qty}</b>
-                      <button type="button" onClick={() => changeQty(i.id, 1)} disabled={i.qty >= i.max} aria-label="Increase quantity">+</button>
+                      <button type="button" onClick={() => changeQty(i.key, 1)} disabled={i.qty >= i.max} aria-label="Increase quantity">+</button>
                     </div>
+                    </>}
                   </div>
                   <div className="cd-side">
-                    <button type="button" className="cd-rm" onClick={() => removeItem(i.id)} aria-label={`Remove ${i.name}`}>✕</button>
-                    <b>{inr(i.line)}</b>
+                    <button type="button" className="cd-rm" onClick={() => removeItem(i.key)} aria-label={`Remove ${i.name}`}>✕</button>
+                    <b>{i.soldOut ? "—" : inr(i.line)}</b>
                   </div>
                 </li>
               ))}
@@ -103,14 +111,18 @@ export default function CartDrawer() {
             <div className="cd-row tot"><b>Total</b><b>{inr(cart.total)}</b></div>
             <div className="cd-btns">
               <button type="button" className="btn o" onClick={closeCart}>Keep Shopping</button>
-              <Link
-                href="/checkout"
-                className="btn a"
-                aria-disabled={busy}
-                onClick={(e) => { if (busy) e.preventDefault(); }}
-              >
-                Checkout
-              </Link>
+              {items.some((i) => i.soldOut) ? (
+                <button type="button" className="btn a" disabled>Remove sold-out items</button>
+              ) : (
+                <Link
+                  href="/checkout"
+                  className="btn a"
+                  aria-disabled={busy}
+                  onClick={(e) => { if (busy) e.preventDefault(); }}
+                >
+                  Checkout
+                </Link>
+              )}
             </div>
           </div>
         )}

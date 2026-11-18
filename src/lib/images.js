@@ -1,6 +1,6 @@
 // Product photos: data/uploads folder mein save hoti hain, /uploads/<naam> se dikhti hain
 import { randomBytes } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, unlink } from "node:fs/promises";
 import { join } from "node:path";
 import { all, one, run } from "@/lib/db";
 
@@ -15,6 +15,24 @@ function kind(buf) {
   if (buf[0] === 0x89 && buf.toString("latin1", 1, 4) === "PNG") return "png";
   if (buf.toString("latin1", 0, 4) === "RIFF" && buf.toString("latin1", 8, 12) === "WEBP") return "webp";
   return null;
+}
+
+// Ek photo save karta hai (profile photo ke liye bhi). Wapas deta hai { url } ya { error }
+export async function storeImage(file, prefix = "") {
+  if (!file || typeof file === "string" || !file.size) return { error: "Pehle photo chuniye." };
+  if (file.size > MAX_BYTES) return { error: "Photo 8MB se badi hai." };
+  const buf = Buffer.from(await file.arrayBuffer());
+  const ext = kind(buf);
+  if (!ext) return { error: "Sirf JPG, PNG ya WEBP photo chalegi." };
+  const name = `${prefix}${Date.now()}-${randomBytes(4).toString("hex")}.${ext}`;
+  await mkdir(dir(), { recursive: true });
+  await writeFile(join(dir(), name), buf);
+  return { url: "/uploads/" + name };
+}
+
+export async function deleteStored(url) {
+  const m = /^\/uploads\/([\w-]+\.(jpg|png|webp))$/.exec(url || "");
+  if (m) { try { await unlink(join(dir(), m[1])); } catch {} }
 }
 
 export function imagesOf(productId) {
